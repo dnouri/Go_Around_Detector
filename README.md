@@ -4,13 +4,32 @@ This tool enables the automatic detection of go-around events in aircraft positi
 The tool will produce graphics showing the flight path and phase for every detected landing aircraft. Normal landings can be stored in one subdirectory, potential go-arounds in another.
 
 Requires:
- Xavier Olive's `Traffic` library: https://github.com/xoolive/traffic
+
+- Xavier Olive's `Traffic` library: https://github.com/xoolive/traffic
  
- Junzi Sun's `flight-data-processor` library: https://github.com/junzis/flight-data-processor
+- Junzi Sun's `flight-data-processor` library: https://github.com/junzis/flight-data-processor
+
+- The requests library: `pip install requests`
+
+- The click library: `pip install click`
 
 Usage:
 First you must download aircraft data, which can be done using the `OpenSky_Get_Data` script. You can then point `GA_Detect` at the download location to scan for go-arounds.
 This tool is in very early development, so has manual tweaks that would ideally be changeable via a config file or directly via the command line call. The most important of these tweaks are listed below:
+
+### `Metars_Get_Data.py`
+
+To download the METARS data for a given station and timespan, use the
+`Metars_Get_Data.py` script.  This script uses defaults that
+correspond to the ones used in the `OpenSky_Get_Data.py` script, thus
+these two calls are equivalent:
+
+```bash
+python Metars_Get_Data.py
+python Metars_Get_Data.py \
+    --station=VABB --start-dt=2019-08-10 --end-dt=2019-08-21 \
+    --outfile=VABB_METARS
+```
 
 ### `OpenSky_Get_Data.py`:
 
