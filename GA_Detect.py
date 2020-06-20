@@ -4,6 +4,7 @@ from datetime import timedelta
 import multiprocessing as mp
 from OS_Airports import VABB
 import OS_Funcs as OSF
+import os
 import glob
 
 
@@ -39,6 +40,8 @@ def main(start_n, fidder, do_write):
     odir_da_ga = top_dir + 'OUT_DATA/PSGA/'
 
     odirs = [odir_pl_nm, odir_pl_ga, odir_da_nm, odir_da_ga]
+    for odir in odirs:
+        os.makedirs(odir, exist_ok=True)
 
     # Output filenames for saving data about go-arounds
     out_file_ga = 'GA_MET_NEW.csv'
@@ -60,12 +63,12 @@ def main(start_n, fidder, do_write):
                       Temp, Dewp, Wind_Spd, Wind_Gust, Wind_Dir,Cld_Base,\
                       CB, Vis, Pressure\n')
     files = []
-    files = glob.glob(indir+'**.pkl')
+    files = glob.glob(indir+'*.pkl') + glob.glob(indir+'*/*.pkl')
     files.sort()
 
     fli_len = len(files)
 
-    colormap = {'GND': 'black', 'CL': 'green', 'CR': 'blue',
+    colormap = {'GND': 'black', 'GN': 'black', 'CL': 'green', 'CR': 'blue',
                 'DE': 'orange', 'LVL': 'purple', 'NA': 'red'}
 
     # Number of files to open in one go
