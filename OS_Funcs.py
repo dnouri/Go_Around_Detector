@@ -351,7 +351,7 @@ def proc_fl(flight, check_rwys, odirs, colormap, do_save, verbose):
     # Correct barometric altitudes
     t_alt = fd['alts']
     l_time = fd['strt'] + (fd['dura'] / 2)
-    l_time = pd.Timestamp(l_time, tz='UTC')
+    l_time = pd.Timestamp(l_time)
     bmet, tdiff = find_closest_metar(l_time, metars)
     if (bmet is not None):
         t_alt = correct_baro(t_alt, bmet.temp, bmet.pres)
@@ -363,16 +363,17 @@ def proc_fl(flight, check_rwys, odirs, colormap, do_save, verbose):
     # Now the actual go-around check
     ga_flag, gapt = check_ga(fd, True)
 
+    if (ga_flag):
+        odir_pl = odirs[1]
+        odir_np = odirs[3]
+    else:
+        odir_pl = odirs[0]
+        odir_np = odirs[2]
+
     # Make some plots if required, this needs a spline to smooth output
     if do_save:
         spldict = create_spline(fd, bpos=None)
         # Choose output directory based upon go-around flag
-        if (ga_flag):
-            odir_pl = odirs[1]
-            odir_np = odirs[3]
-        else:
-            odir_pl = odirs[0]
-            odir_np = odirs[2]
         OSO.do_plots(fd,
                      spldict,
                      colormap,
@@ -381,8 +382,7 @@ def proc_fl(flight, check_rwys, odirs, colormap, do_save, verbose):
                      bpos=None)
     if (ga_flag):
         ga_time = pd.Timestamp(fd['strt'] +
-                               pd.Timedelta(seconds=fd['time'][gapt]),
-                               tz='UTC')
+                               pd.Timedelta(seconds=fd['time'][gapt]))
     else:
         gapt = 0
         ga_time = fd['strt']
@@ -679,6 +679,7 @@ def do_labels(fd):
     try:
         labels = flph.fuzzylabels(fd['time'], fd['alts'],
                                   fd['spds'], fd['rocs'], twindow=15)
+        labels = np.array(labels)
     except Exception as e:
         print("Error creating spline", e, fd['call'])
         quit()
