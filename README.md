@@ -10,7 +10,6 @@ Requires:
 
 Usage:
 First you must download aircraft data, which can be done using the `OpenSky_Get_Data` script. You can then point `GA_Detect` at the download location to scan for go-arounds.
-This tool is in very early development, so has manual tweaks that would ideally be changeable via a config file or directly via the command line call. The most important of these tweaks are listed below:
 
 ### `OpenSky_Get_Data.py`:
 
@@ -34,9 +33,35 @@ python OpenSky_Get_Data.py \
     --outdir=INDATA --n-jobs=1
 ```
 
-### In `GA_Detect.py`
-The directory structure is set at the beginning of `main()`. You will probably want to adjust this to your own requirements.
+### `GA_Detect.py`
 
-`n_files_proc` specifies how many files to process simultaneously. This should be changed to the optimal value for your hardware.
+The script that runs the actual go-around events.
 
-`pool_proc` specifies the number of multiprocessing threads to use. I have found that this can be set slightly higher than the number of cores available, as cores are not fully utilised anyway.
+Data is read and written based on a top-level directory.  The default
+is the current working directory, which can be overridden by passing
+the `--top-dir` command-line option.
+
+The file containing the appropriate METARS data can be passed using
+the `--metars-file` option.
+
+The airport can be specified using the `--airport` option.  See the
+`OS_Airports` subpackage which contains the runway definitions for the
+currently supported airports.
+
+The `--n-files-proc` option specifies how many files to process
+simultaneously. This should be changed to the optimal value for your
+hardware.
+
+The `--pool-proc` option specifies the number of multiprocessing
+threads to use. I have found that this can be set slightly higher than
+the number of cores available, as cores are not fully utilised anyway.
+
+The `GA_Detect.py` command-line script uses a few defaults.  The
+defaults are chosen to accommodate the defaults in the data fetching
+scripts.  As such, these two calls are equivalent:
+
+```bash
+python GA_Detect.py  # does the same thing as the next command:
+python GA_Detect.py \
+    --top-dir=. --metars-file=VABB_METAR --airport=VABB
+```

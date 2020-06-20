@@ -1,18 +1,29 @@
 """A script to process OpenSky ADS-B data in an attempt to detect go-around events at an airport."""
 from traffic.core import Traffic
 from datetime import timedelta
+import importlib
 import multiprocessing as mp
-from OS_Airports import VABB
+import metar_parse as MEP
 import OS_Funcs as OSF
 import glob
+import click
 
 
-def main(start_n, fidder, do_write):
+@click.command()
+@click.option('--top-dir', default='./')
+@click.option('--start-n', default=0)
+@click.option('--do-write', default=True)
+@click.option('--metars-file', default='VABB_METAR')
+@click.option('--airport', default='VABB')
+@click.option('--n-files-proc', default=55)
+@click.option('--pool-proc', default=16)
+@click.option('--verbose', default=False)
+def main(top_dir, start_n, do_write, metars_file, airport,
+         n_files_proc, pool_proc, verbose):
     """The main code for detecting go-arounds.
 
     Arguments:
     start_n -- The index of the first file to read
-    fidder -- the id of an open file to write log information into
     do_write -- boolean flag specifying whether to output data to textfile
 
     """
@@ -22,7 +33,6 @@ def main(start_n, fidder, do_write):
     # Of which go-arounds
     tot_n_ga = 0
 
-    top_dir = '/gf2/eodg/SRP002_PROUD_ADSBREP/GO_AROUNDS/VABB/'
     # indir stores the opensky data
     indir = top_dir + 'INDATA/'
 
@@ -41,9 +51,9 @@ def main(start_n, fidder, do_write):
     odirs = [odir_pl_nm, odir_pl_ga, odir_da_nm, odir_da_ga]
 
     # Output filenames for saving data about go-arounds
-    out_file_ga = 'GA_MET_NEW.csv'
+    out_file_ga = top_dir + 'GA_MET_NEW.csv'
     # Output filenames for saving data about non-go-arounds
-    out_file_noga = 'GA_NOGA_NEW.csv'
+    out_file_noga = top_dir + 'GA_NOGA_NEW.csv'
 
     t_frmt = "%Y/%m/%d %H:%M:%S"
 
@@ -68,10 +78,9 @@ def main(start_n, fidder, do_write):
     colormap = {'GND': 'black', 'CL': 'green', 'CR': 'blue',
                 'DE': 'orange', 'LVL': 'purple', 'NA': 'red'}
 
-    # Number of files to open in one go
-    n_files_proc = 55
-
-    pool_proc = 100
+    metars = MEP.get_metars(metars_file, verbose=verbose)
+    rwy_list = getattr(importlib.import_module(f'OS_Airports.{airport}'),
+                       'rwy_list')
 
     f_data = []
     pool = mp.Pool(processes=pool_proc)
@@ -80,9 +89,6 @@ def main(start_n, fidder, do_write):
         print("Processing batch starting with "
               + str(main_count + 1).zfill(5) + " of "
               + str(fli_len).zfill(5))
-        fidder.write("Processing batch starting with "
-                     + str(main_count + 1).zfill(5) + " of "
-                     + str(fli_len).zfill(5) + '\n')
 
         p_list = []
         # First we load several files at once
@@ -113,11 +119,12 @@ def main(start_n, fidder, do_write):
             if (flight.stop + timedelta(minutes=5) < end_time):
                 p_list.append(pool.apply_async(OSF.proc_fl,
                                                args=(flight,
-                                                     VABB.rwy_list,
+                                                     metars,
+                                                     rwy_list,
                                                      odirs,
                                                      colormap,
                                                      True,
-                                                     False,)))
+                                                     verbose,)))
             else:
                 f_data.append(flight)
 
@@ -196,12 +203,5 @@ def main(start_n, fidder, do_write):
         nogfid.close()
 
 
-# Use this to start processing from a given file number.
-# Can be helpful if processing fails at some point.
-init_num = 0
-
-fid = open('/home/proud/Desktop/log.log', 'w')
-
-main(init_num, fid, False)
-
-fid.close()
+if __name__ == '__main__':
+    main()
