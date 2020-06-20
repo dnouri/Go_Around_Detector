@@ -2,17 +2,12 @@
 from scipy.interpolate import UnivariateSpline as UniSpl
 from traffic.core import Traffic
 from datetime import timedelta
-import metar_parse as MEP
 import pandas as pd
 
 import flightphase as flph
 import OS_Output as OSO
 import OS_Consts as CNS
 import numpy as np
-
-
-# Read METARs from disk
-metars = MEP.get_metars('/home/proud/Desktop/GoAround_Paper/VABB_METAR')
 
 
 def estimate_rwy(df, rwy_list, verbose):
@@ -255,11 +250,12 @@ def check_ga(fd, verbose, first_pos=-1):
     return ga_flag, bpt
 
 
-def proc_fl(flight, check_rwys, odirs, colormap, do_save, verbose):
+def proc_fl(flight, metars, check_rwys, odirs, colormap, do_save, verbose):
     """Filter, assign phases and determine go-around status for a given flight.
 
     Inputs:
         -   A 'traffic' flight object
+        -   A dict of METARS, each as a metobs class
         -   A list storing potential landing runways to check
         -   A 4-element list specifying various output directories:
             -   normal plot output
