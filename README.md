@@ -65,3 +65,8 @@ python GA_Detect.py  # does the same thing as the next command:
 python GA_Detect.py \
     --top-dir=. --metars-file=VABB_METAR --airport=VABB
 ```
+
+## Running tests
+
+To run the included test suite, first install pytest via `pip install
+pytest` and then run `pytest -s tests`.
