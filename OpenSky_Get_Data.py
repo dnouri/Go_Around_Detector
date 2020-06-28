@@ -5,13 +5,13 @@ a small perimeter is set up around the airport to catch the approach path
 """
 
 from datetime import datetime, timedelta, timezone
-from importlib import import_module
 from traffic.data import opensky
 import multiprocessing as mp
 import numpy as np
 import pathlib
 import click
 import os
+from OS_Airports.RWY import get_runway_list
 
 
 # Use these lines if you need debug info
@@ -86,8 +86,8 @@ def getter(init_time, bounds, timer, anam, outdir, subdir):
 @click.option('--n-jobs', default=1)
 def main(airport, start_dt, end_dt, outdir, subdir, n_jobs):
     """Set up the processing and run."""
-    airport = import_module('OS_Airports.' + airport)
-    bounds = get_bounds(airport.rwy_list)
+    rwy_list = get_runway_list(airport)
+    bounds = get_bounds(rwy_list)
     start_dt = datetime.strptime(start_dt, '%Y-%m-%d').replace(
         tzinfo=timezone.utc)
     end_dt = datetime.strptime(end_dt, '%Y-%m-%d').replace(
@@ -97,7 +97,7 @@ def main(airport, start_dt, end_dt, outdir, subdir, n_jobs):
     pool = mp.Pool(n_jobs)
 
     pool.starmap(getter, [
-        (start_dt, bounds, hour, airport.icao_name, outdir, subdir)
+        (start_dt, bounds, hour, airport, outdir, subdir)
         for hour in range(hours)
         ])
 

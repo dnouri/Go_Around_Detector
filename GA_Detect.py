@@ -1,9 +1,9 @@
 """A script to process OpenSky ADS-B data in an attempt to detect go-around events at an airport."""
 from traffic.core import Traffic
 from datetime import timedelta
-import importlib
 import multiprocessing as mp
 import metar_parse as MEP
+from OS_Airports.RWY import get_runway_list
 import OS_Funcs as OSF
 import os
 import glob
@@ -83,8 +83,7 @@ def main(top_dir, start_n, do_write, do_plot, metars_file, airport,
                 'DE': 'orange', 'LVL': 'purple', 'NA': 'red'}
 
     metars = MEP.get_metars(metars_file, verbose=verbose)
-    rwy_list = getattr(importlib.import_module(f'OS_Airports.{airport}'),
-                       'rwy_list')
+    rwy_list = get_runway_list(airport)
 
     f_data = []
     pool = mp.Pool(processes=pool_proc)
